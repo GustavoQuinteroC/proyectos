@@ -1,0 +1,266 @@
+#sobre {
+  position: relative;
+  width: 280px;
+  height: 180px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  margin-left: auto;
+  margin-right: auto;
+  top: 150px;
+  background-color: #d9534f; /* Rojo cálido y romántico */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.frente {
+  position: absolute;
+  width: 0;
+  height: 0;
+  z-index: 3;
+}
+
+.solapa {
+  border-left: 140px solid transparent;
+  border-right: 140px solid transparent;
+  border-bottom: 82px solid transparent;
+  /* un poco más pequeña */
+  border-top: 98px solid #d9534f; /* Mismo rojo romántico */
+  /* un poco más grande */
+  transform-origin: top;
+  pointer-events: none;
+}
+
+.bolsillo {
+  border-left: 140px solid #f5a3a2; /* Rosa suave para el bolsillo */
+  border-right: 140px solid #f5a3a2;
+  border-bottom: 90px solid #ff6f61; /* Rojo romántico más claro */
+  border-top: 90px solid transparent;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.carta {
+  position: relative;
+  background-color: #fff;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  height: 90%;
+  top: 5%;
+  border-radius: 6px;
+  box-shadow: 0 2px 26px rgba(0, 0, 0, 0.12);
+  font-family: "Dancing Script", cursive;
+}
+
+.carta:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.palabras {
+  position: absolute;
+  left: 10%;
+  width: 80%;
+  height: 14%;
+  background-color: #ffe6e6; /* Tono romántico claro */
+}
+
+.palabras.linea1 {
+  top: 10%;
+  font-size: 0.5rem;
+  width: 20%;
+  height: 7%;
+  font-size: 0.7rem;
+}
+
+.palabras.linea2 {
+  top: 30%;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.palabras.linea3 {
+  top: 50%;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.palabras.linea4 {
+  top: 70%;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.abrir .solapa {
+  transform: rotateX(180deg);
+  transition: transform 0.4s ease, z-index 0.6s;
+  z-index: 1;
+}
+
+.cerrar .solapa {
+  transform: rotateX(0deg);
+  transition: transform 0.4s 0.6s ease, z-index 1s;
+  z-index: 5;
+}
+
+.cerrar .carta {
+  transform: translateY(0px);
+  transition: transform 0.4s ease, z-index 1s;
+  z-index: 1;
+}
+
+.abrir .carta {
+  transform: translateY(-100px);
+  transition: transform 0.4s 0.6s ease, z-index 0.6s;
+  z-index: 2;
+}
+
+.corazones {
+  position: absolute;
+  top: 90px;
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+
+.corazon {
+  position: absolute;
+  bottom: 0;
+  right: 10%;
+  pointer-events: none;
+}
+
+.corazon:before,
+.corazon:after {
+  position: absolute;
+  content: "";
+  left: 50px;
+  top: 0;
+  width: 50px;
+  height: 80px;
+  background: #e60073; /* Rosa profundo y romántico */
+  border-radius: 50px 50px 0 0;
+  transform: rotate(-45deg);
+  transform-origin: 0 100%;
+  pointer-events: none;
+}
+
+.corazon:after {
+  left: 0;
+  transform: rotate(45deg);
+  transform-origin: 100% 100%;
+}
+
+.cerrar .corazon {
+  opacity: 0;
+  -webkit-animation: none;
+  animation: none;
+}
+
+.a1 {
+  left: 20%;
+  transform: scale(0.6);
+  opacity: 1;
+  -webkit-animation: deslizarArriba 4s linear 1, balanceoLateral 2s ease-in-out 4 alternate;
+  -moz-animation: deslizarArriba 4s linear 1, balanceoLateral 2s ease-in-out 4 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  -webkit-animation-delay: 0.7s;
+  animation-delay: 0.7s;
+}
+
+.a2 {
+  left: 55%;
+  transform: scale(1);
+  opacity: 1;
+  -webkit-animation: deslizarArriba 5s linear 1, balanceoLateral 4s ease-in-out 2 alternate;
+  -moz-animation: deslizarArriba 5s linear 1, balanceoLateral 4s ease-in-out 2 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  -webkit-animation-delay: 0.7s;
+  animation-delay: 0.7s;
+}
+
+.a3 {
+  left: 10%;
+  transform: scale(0.8);
+  opacity: 1;
+  -webkit-animation: deslizarArriba 7s linear 1, balanceoLateral 2s ease-in-out 6 alternate;
+  -moz-animation: deslizarArriba 7s linear 1, balanceoLateral 2s ease-in-out 6 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  -webkit-animation-delay: 0.7s;
+  animation-delay: 0.7s;
+}
+
+@-webkit-keyframes deslizarArriba {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: -600px;
+  }
+}
+@keyframes deslizarArriba {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: -600px;
+  }
+}
+@-webkit-keyframes balanceoLateral {
+  0% {
+    margin-left: 0px;
+  }
+  100% {
+    margin-left: 50px;
+  }
+}
+@keyframes balanceoLateral {
+  0% {
+    margin-left: 0px;
+  }
+  100% {
+    margin-left: 50px;
+  }
+}
+body {
+  background-color: #f0e6f6; /* Lavanda suave para un ambiente romántico y soñador */
+}
+
+.contenedor-sobre {
+  height: 380px;
+}
+
+.reiniciar {
+  text-align: center;
+}
+
+.reiniciar button {
+  font-weight: 800;
+  font-style: normal;
+  transition: all 0.1s linear;
+  -webkit-appearance: none;
+  background-color: transparent;
+  border: solid 2px #d9534f;
+  border-radius: 4px;
+  color: #d9534f;
+  display: inline-block;
+  font-size: 14px;
+  text-transform: uppercase;
+  margin: 5px;
+  padding: 10px;
+  line-height: 1em;
+  text-decoration: none;
+  min-width: 120px;
+  cursor: pointer;
+}
+
+.reiniciar button:hover {
+  background-color: #d9534f;
+  color: #fff;
+}

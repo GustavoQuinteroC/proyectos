@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Regalos de Boda</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts (Elegir una tipografía bonita) -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa; /* Fondo suave */
+            color: #333;
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.9); /* Navbar semi-transparente */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .hero-section {
+            background: linear-gradient(rgba(0, 123, 255, 0.8), rgba(0, 123, 255, 0.8)), url('https://via.placeholder.com/1500x800'); /* Imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        .hero-section h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .hero-section p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: white;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .card img {
+            height: 200px;
+            object-fit: cover;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .card-text {
+            font-size: 1rem;
+            color: #666;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">Lista de Regalos</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#gift-list">Regalos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">Sobre Nosotros</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1>Nuestra Boda</h1>
+            <p>Ayúdanos a hacer nuestro sueño realidad. Elige un regalo de nuestra lista.</p>
+        </div>
+    </section>
+
+    <!-- Lista de Regalos -->
+    <section id="gift-list" class="container my-5">
+        <h2 class="text-center mb-5">Lista de Regalos</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <!-- Los regalos se cargarán aquí dinámicamente -->
+        </div>
+    </section>
+
+    <!-- Sobre Nosotros -->
+    <section id="about" class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Sobre Nosotros</h2>
+            <p class="text-center">Estamos emocionados de compartir este momento especial con todos ustedes. Gracias por ser parte de nuestra historia.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2023 Lista de Regalos de Boda</p>
+            <p>Diseñado con ❤️ por [Tu Nombre]</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script para manejar los regalos -->
+    <script>
+        // Datos de ejemplo de los regalos
+        const gifts = [
+            { id: 1, name: "Juego de vajilla", price: 1500, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 2, name: "Licuadora", price: 800, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 3, name: "Tostadora", price: 500, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 4, name: "Juego de sábanas", price: 1200, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 5, name: "Cafetera", price: 1000, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 6, name: "Set de cuchillos", price: 900, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 7, name: "Mesa de centro", price: 2500, image: "https://via.placeholder.com/300x200", available: true },
+            { id: 8, name: "Lámpara de pie", price: 1800, image: "https://via.placeholder.com/300x200", available: true },
+        ];
+
+        // Función para renderizar los regalos
+        function renderGifts() {
+            const giftList = document.getElementById('gift-list').querySelector('.row');
+            giftList.innerHTML = '';
+            gifts.forEach(gift => {
+                const card = document.createElement('div');
+                card.className = 'col';
+                card.innerHTML = `
+                    <div class="card h-100">
+                        <img src="${gift.image}" class="card-img-top" alt="${gift.name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${gift.name}</h5>
+                            <p class="card-text">Precio: $${gift.price}</p>
+                            <button class="btn btn-primary w-100 ${gift.available ? '' : 'disabled'}" onclick="selectGift(${gift.id})">
+                                ${gift.available ? 'Seleccionar' : 'No disponible'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                giftList.appendChild(card);
+            });
+        }
+
+        // Función para seleccionar un regalo
+        function selectGift(id) {
+            const gift = gifts.find(g => g.id === id);
+            if (gift && gift.available) {
+                gift.available = false;
+                renderGifts();
+                alert(`¡Gracias por seleccionar ${gift.name}!`);
+            }
+        }
+
+        // Renderizar los regalos al cargar la página
+        window.onload = renderGifts;
+    </script>
+</body>
+</html>

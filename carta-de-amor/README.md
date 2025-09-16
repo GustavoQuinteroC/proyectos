@@ -13,7 +13,7 @@ Este proyecto es una carta de amor interactiva y animada en formato web. Al abri
 
 1. Clona o descarga este repositorio en tu computadora:
    ```sh
-   git clone <URL-del-repositorio>
+   git clone https://github.com/GustavoQuinteroC/proyectos/tree/main/carta-de-amor
    ```
 2. Accede a la carpeta del proyecto:
    ```sh
@@ -28,5 +28,6 @@ Este proyecto es una carta de amor interactiva y animada en formato web. Al abri
 4. ¡Listo! Disfruta y comparte tu carta de amor interactiva.
 
 ---
+
 
 > Hecho con 💖 para sorprender a alguien especial.

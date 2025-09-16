@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Héroe del Palo</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        cursor: pointer;
+      }
+
+      .contenedor {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+      }
+
+      #puntuacion {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        font-size: 2em;
+        font-weight: 900;
+      }
+
+      #introduccion {
+        width: 200px;
+        height: 150px;
+        position: absolute;
+        font-weight: 600;
+        font-size: 0.8em;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
+        transition: opacity 2s;
+      }
+
+      #reiniciar {
+        width: 120px;
+        height: 120px;
+        position: absolute;
+        border-radius: 50%;
+        color: white;
+        background-color: red;
+        border: none;
+        font-weight: 700;
+        font-size: 1.2em;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: none;
+        cursor: pointer;
+      }
+
+      #perfecto {
+        position: absolute;
+        opacity: 0;
+        transition: opacity 2s;
+      }
+
+      #youtube,
+      #youtube-card {
+        display: none;
+      }
+
+      @media (min-height: 425px) {
+        #youtube {
+          z-index: 2;
+          display: block;
+          width: 100px;
+          height: 70px;
+          position: absolute;
+          bottom: 20px;
+          left: 20px;
+          background: red;
+          border-radius: 50% / 11%;
+          transform: scale(0.8);
+          transition: transform 0.5s;
+        }
+
+        #youtube:hover,
+        #youtube:focus {
+          transform: scale(0.9);
+        }
+
+        #youtube::before {
+          content: "";
+          display: block;
+          position: absolute;
+          top: 7.5%;
+          left: -6%;
+          width: 112%;
+          height: 85%;
+          background: red;
+          border-radius: 9% / 50%;
+        }
+
+        #youtube::after {
+          content: "";
+          display: block;
+          position: absolute;
+          top: 20px;
+          left: 40px;
+          width: 45px;
+          height: 30px;
+          border: 15px solid transparent;
+          box-sizing: border-box;
+          border-left: 30px solid white;
+        }
+
+        #youtube span {
+          font-size: 0;
+          position: absolute;
+          width: 0;
+          height: 0;
+          overflow: hidden;
+        }
+
+        #youtube:hover + #youtube-card {
+          display: block;
+          position: absolute;
+          bottom: 12px;
+          left: 10px;
+          padding: 25px 25px 25px 130px;
+          width: 300px;
+          background-color: white;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="contenedor">
+      <div id="puntuacion"></div>
+      <canvas id="juego" width="375" height="375"></canvas>
+      <div id="introduccion">Mantén presionado para estirar el palo</div>
+      <div id="perfecto">DOBLE PUNTOS</div>
+      <button id="reiniciar">REINICIAR</button>
+    </div>
+
+    <script>
+      Array.prototype.ultimo = function () {
+        return this[this.length - 1];
+      };
+
+      // Una función seno que acepta grados en vez de radianes
+      Math.seno = function (grado) {
+        return Math.sin((grado / 180) * Math.PI);
+      };
+
+      // Datos del juego
+      let fase = "esperando"; // esperando | estirando | girando | caminando | transicionando | cayendo
+      let ultimoTimestamp; // El timestamp del ciclo anterior de requestAnimationFrame
+
+      let heroeX; // Cambia al avanzar
+      let heroeY; // Solo cambia al caer
+      let desplazamientoEscena; // Mueve todo el juego
+
+      let plataformas = [];
+      let palos = [];
+      let arboles = [];
+
+      // Todo: Guardar puntuación máxima en localStorage (?)
+
+      let puntuacion = 0;
+
+      // Configuración
+      const anchoCanvas = 375;
+      const altoCanvas = 375;
+      const altoPlataforma = 100;
+      const distanciaHeroeAlBorde = 10; // Mientras espera
+      const rellenoX = 100; // Posición de espera del héroe desde el tamaño original del canvas
+      const tamanoAreaPerfecta = 10;
+
+      // El fondo se mueve más lento que el héroe
+      const multiplicadorVelocidadFondo = 0.2;
+
+      const baseAlturaColina1 = 100;
+      const amplitudColina1 = 10;
+      const estiramientoColina1 = 1;
+      const baseAlturaColina2 = 70;
+      const amplitudColina2 = 20;
+      const estiramientoColina2 = 0.5;
+
+      const velocidadEstiramiento = 4; // Milisegundos para dibujar un píxel
+      const velocidadGiro = 4; // Milisegundos para girar un grado
+      const velocidadCaminata = 4;
+      const velocidadTransicion = 2;
+      const velocidadCaida = 2;
+
+      const anchoHeroe = 17; // 24
+      const altoHeroe = 30; // 40
+
+      const canvas = document.getElementById("juego");
+      canvas.width = window.innerWidth; // Hacer el Canvas pantalla completa
+      canvas.height = window.innerHeight;
+
+      const ctx = canvas.getContext("2d");
+
+      const elementoIntroduccion = document.getElementById("introduccion");
+      const elementoPerfecto = document.getElementById("perfecto");
+      const botonReiniciar = document.getElementById("reiniciar");
+      const elementoPuntuacion = document.getElementById("puntuacion");
+
+      // Inicializar diseño
+      reiniciarJuego();
+
+      // Reinicia variables y diseño pero no inicia el juego (el juego inicia al presionar una tecla)
+      function reiniciarJuego() {
+        // Reiniciar progreso
+        fase = "esperando";
+        ultimoTimestamp = undefined;
+        desplazamientoEscena = 0;
+        puntuacion = 0;
+
+        elementoIntroduccion.style.opacity = 1;
+        elementoPerfecto.style.opacity = 0;
+        botonReiniciar.style.display = "none";
+        elementoPuntuacion.innerText = puntuacion;
+
+        // La primera plataforma siempre es igual
+        // x + w debe coincidir con rellenoX
+        plataformas = [{ x: 50, w: 50 }];
+        generarPlataforma();
+        generarPlataforma();
+        generarPlataforma();
+        generarPlataforma();
+
+        palos = [{ x: plataformas[0].x + plataformas[0].w, longitud: 0, rotacion: 0 }];
+
+        arboles = [];
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+        generarArbol();
+
+        heroeX = plataformas[0].x + plataformas[0].w - distanciaHeroeAlBorde;
+        heroeY = 0;
+
+        dibujar();
+      }
+
+      function generarArbol() {
+        const espacioMinimo = 30;
+        const espacioMaximo = 150;
+
+        // Coordenada X del borde derecho del árbol más lejano
+        const ultimoArbol = arboles[arboles.length - 1];
+        let xMasLejano = ultimoArbol ? ultimoArbol.x : 0;
+
+        const x =
+          xMasLejano +
+          espacioMinimo +
+          Math.floor(Math.random() * (espacioMaximo - espacioMinimo));
+
+        const coloresArbol = ["#6D8821", "#8FAC34", "#98B333"];
+        const color = coloresArbol[Math.floor(Math.random() * 3)];
+
+        arboles.push({ x, color });
+      }
+
+      function generarPlataforma() {
+        const espacioMinimo = 40;
+        const espacioMaximo = 200;
+        const anchoMinimo = 20;
+        const anchoMaximo = 100;
+
+        // Coordenada X del borde derecho de la plataforma más lejana
+        const ultimaPlataforma = plataformas[plataformas.length - 1];
+        let xMasLejano = ultimaPlataforma.x + ultimaPlataforma.w;
+
+        const x =
+          xMasLejano +
+          espacioMinimo +
+          Math.floor(Math.random() * (espacioMaximo - espacioMinimo));
+        const w =
+          anchoMinimo + Math.floor(Math.random() * (anchoMaximo - anchoMinimo));
+
+        plataformas.push({ x, w });
+      }
+
+      reiniciarJuego();
+
+      // Si se presiona espacio reinicia el juego
+      window.addEventListener("keydown", function (event) {
+        if (event.key == " ") {
+          event.preventDefault();
+          reiniciarJuego();
+          return;
+        }
+      });
+
+      window.addEventListener("mousedown", function (event) {
+        if (fase == "esperando") {
+          ultimoTimestamp = undefined;
+          elementoIntroduccion.style.opacity = 0;
+          fase = "estirando";
+          window.requestAnimationFrame(animar);
+        }
+      });
+
+      window.addEventListener("mouseup", function (event) {
+        if (fase == "estirando") {
+          fase = "girando";
+        }
+      });
+
+      window.addEventListener("touchstart", function (event) {
+        if (fase == "esperando") {
+          ultimoTimestamp = undefined;
+          elementoIntroduccion.style.opacity = 0;
+          fase = "estirando";
+          window.requestAnimationFrame(animar);
+        }
+      });
+
+      window.addEventListener("touchend", function (event) {
+        if (fase == "estirando") {
+          fase = "girando";
+        }
+      });
+
+      window.addEventListener("resize", function (event) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        dibujar();
+      });
+
+      window.requestAnimationFrame(animar);
+
+      // Bucle principal del juego
+      function animar(timestamp) {
+        if (!ultimoTimestamp) {
+          ultimoTimestamp = timestamp;
+          window.requestAnimationFrame(animar);
+          return;
+        }
+
+        switch (fase) {
+          case "esperando":
+            return; // Detener el bucle
+          case "estirando": {
+            palos.ultimo().longitud += (timestamp - ultimoTimestamp) / velocidadEstiramiento;
+            break;
+          }
+          case "girando": {
+            palos.ultimo().rotacion += (timestamp - ultimoTimestamp) / velocidadGiro;
+
+            if (palos.ultimo().rotacion > 90) {
+              palos.ultimo().rotacion = 90;
+
+              const [siguientePlataforma, golpePerfecto] = plataformaQueGolpeaElPalo();
+              if (siguientePlataforma) {
+                // Aumentar puntuación
+                puntuacion += golpePerfecto ? 2 : 1;
+                elementoPuntuacion.innerText = puntuacion;
+
+                if (golpePerfecto) {
+                  elementoPerfecto.style.opacity = 1;
+                  setTimeout(() => (elementoPerfecto.style.opacity = 0), 1000);
+                }
+
+                generarPlataforma();
+                generarArbol();
+                generarArbol();
+              }
+
+              fase = "caminando";
+            }
+            break;
+          }
+          case "caminando": {
+            heroeX += (timestamp - ultimoTimestamp) / velocidadCaminata;
+
+            const [siguientePlataforma] = plataformaQueGolpeaElPalo();
+            if (siguientePlataforma) {
+              // Si el héroe llega a otra plataforma, limitar su posición al borde
+              const maxHeroeX = siguientePlataforma.x + siguientePlataforma.w - distanciaHeroeAlBorde;
+              if (heroeX > maxHeroeX) {
+                heroeX = maxHeroeX;
+                fase = "transicionando";
+              }
+            } else {
+              // Si el héroe no llega a otra plataforma, limitar su posición al final del palo
+              const maxHeroeX = palos.ultimo().x + palos.ultimo().longitud + anchoHeroe;
+              if (heroeX > maxHeroeX) {
+                heroeX = maxHeroeX;
+                fase = "cayendo";
+              }
+            }
+            break;
+          }
+          case "transicionando": {
+            desplazamientoEscena += (timestamp - ultimoTimestamp) / velocidadTransicion;
+
+            const [siguientePlataforma] = plataformaQueGolpeaElPalo();
+            if (desplazamientoEscena > siguientePlataforma.x + siguientePlataforma.w - rellenoX) {
+              // Añadir el siguiente paso
+              palos.push({
+                x: siguientePlataforma.x + siguientePlataforma.w,
+                longitud: 0,
+                rotacion: 0
+              });
+              fase = "esperando";
+            }
+            break;
+          }
+          case "cayendo": {
+            if (palos.ultimo().rotacion < 180)
+              palos.ultimo().rotacion += (timestamp - ultimoTimestamp) / velocidadGiro;
+
+            heroeY += (timestamp - ultimoTimestamp) / velocidadCaida;
+            const maxHeroeY =
+              altoPlataforma + 100 + (window.innerHeight - altoCanvas) / 2;
+            if (heroeY > maxHeroeY) {
+              botonReiniciar.style.display = "block";
+              return;
+            }
+            break;
+          }
+          default:
+            throw Error("Fase incorrecta");
+        }
+
+        dibujar();
+        window.requestAnimationFrame(animar);
+
+        ultimoTimestamp = timestamp;
+      }
+
+      // Devuelve la plataforma que golpea el palo (si no golpea ninguna devuelve undefined)
+      function plataformaQueGolpeaElPalo() {
+        if (palos.ultimo().rotacion != 90)
+          throw Error(`El palo está a ${palos.ultimo().rotacion}°`);
+        const extremoPaloX = palos.ultimo().x + palos.ultimo().longitud;
+
+        const plataformaGolpeada = plataformas.find(
+          (plataforma) => plataforma.x < extremoPaloX && extremoPaloX < plataforma.x + plataforma.w
+        );
+
+        // Si el palo golpea el área perfecta
+        if (
+          plataformaGolpeada &&
+          plataformaGolpeada.x + plataformaGolpeada.w / 2 - tamanoAreaPerfecta / 2 < extremoPaloX &&
+          extremoPaloX < plataformaGolpeada.x + plataformaGolpeada.w / 2 + tamanoAreaPerfecta / 2
+        )
+          return [plataformaGolpeada, true];
+
+        return [plataformaGolpeada, false];
+      }
+
+      function dibujar() {
+        ctx.save();
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        dibujarFondo();
+
+        // Centrar área principal del canvas en el medio de la pantalla
+        ctx.translate(
+          (window.innerWidth - anchoCanvas) / 2 - desplazamientoEscena,
+          (window.innerHeight - altoCanvas) / 2
+        );
+
+        // Dibujar escena
+        dibujarPlataformas();
+        dibujarHeroe();
+        dibujarPalos();
+
+        // Restaurar transformación
+        ctx.restore();
+      }
+
+      botonReiniciar.addEventListener("click", function (event) {
+        event.preventDefault();
+        reiniciarJuego();
+        botonReiniciar.style.display = "none";
+      });
+
+      function dibujarPlataformas() {
+        plataformas.forEach(({ x, w }) => {
+          // Dibujar plataforma
+          ctx.fillStyle = "black";
+          ctx.fillRect(
+            x,
+            altoCanvas - altoPlataforma,
+            w,
+            altoPlataforma + (window.innerHeight - altoCanvas) / 2
+          );
+
+          // Dibujar área perfecta solo si el héroe aún no llegó a la plataforma
+          if (palos.ultimo().x < x) {
+            ctx.fillStyle = "red";
+            ctx.fillRect(
+              x + w / 2 - tamanoAreaPerfecta / 2,
+              altoCanvas - altoPlataforma,
+              tamanoAreaPerfecta,
+              tamanoAreaPerfecta
+            );
+          }
+        });
+      }
+
+      function dibujarHeroe() {
+        ctx.save();
+        ctx.fillStyle = "black";
+        ctx.translate(
+          heroeX - anchoHeroe / 2,
+          heroeY + altoCanvas - altoPlataforma - altoHeroe / 2
+        );
+
+        // Cuerpo
+        dibujarRectRedondeado(
+          -anchoHeroe / 2,
+          -altoHeroe / 2,
+          anchoHeroe,
+          altoHeroe - 4,
+          5
+        );
+
+        // Piernas
+        const distanciaPiernas = 5;
+        ctx.beginPath();
+        ctx.arc(distanciaPiernas, 11.5, 3, 0, Math.PI * 2, false);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(-distanciaPiernas, 11.5, 3, 0, Math.PI * 2, false);
+        ctx.fill();
+
+        // Ojo
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        ctx.arc(5, -7, 3, 0, Math.PI * 2, false);
+        ctx.fill();
+
+        // Banda
+        ctx.fillStyle = "red";
+        ctx.fillRect(-anchoHeroe / 2 - 1, -12, anchoHeroe + 2, 4.5);
+        ctx.beginPath();
+        ctx.moveTo(-9, -14.5);
+        ctx.lineTo(-17, -18.5);
+        ctx.lineTo(-14, -8.5);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-10, -10.5);
+        ctx.lineTo(-15, -3.5);
+        ctx.lineTo(-5, -7);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function dibujarRectRedondeado(x, y, ancho, alto, radio) {
+        ctx.beginPath();
+        ctx.moveTo(x, y + radio);
+        ctx.lineTo(x, y + alto - radio);
+        ctx.arcTo(x, y + alto, x + radio, y + alto, radio);
+        ctx.lineTo(x + ancho - radio, y + alto);
+        ctx.arcTo(x + ancho, y + alto, x + ancho, y + alto - radio, radio);
+        ctx.lineTo(x + ancho, y + radio);
+        ctx.arcTo(x + ancho, y, x + ancho - radio, y, radio);
+        ctx.lineTo(x + radio, y);
+        ctx.arcTo(x, y, x, y + radio, radio);
+        ctx.fill();
+      }
+
+      function dibujarPalos() {
+        palos.forEach((palo) => {
+          ctx.save();
+
+          // Mover el punto de anclaje al inicio del palo y rotar
+          ctx.translate(palo.x, altoCanvas - altoPlataforma);
+          ctx.rotate((Math.PI / 180) * palo.rotacion);
+
+          // Dibujar palo
+          ctx.beginPath();
+          ctx.lineWidth = 2;
+          ctx.moveTo(0, 0);
+          ctx.lineTo(0, -palo.longitud);
+          ctx.stroke();
+
+          // Restaurar transformaciones
+          ctx.restore();
+        });
+      }
+
+      function dibujarFondo() {
+        // Dibujar cielo
+        var gradiente = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
+        gradiente.addColorStop(0, "#BBD691");
+        gradiente.addColorStop(1, "#FEF1E1");
+        ctx.fillStyle = gradiente;
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+        // Dibujar colinas
+        dibujarColina(baseAlturaColina1, amplitudColina1, estiramientoColina1, "#95C629");
+        dibujarColina(baseAlturaColina2, amplitudColina2, estiramientoColina2, "#659F1C");
+
+        // Dibujar árboles
+        arboles.forEach((arbol) => dibujarArbol(arbol.x, arbol.color));
+      }
+
+      // Una colina es una forma bajo una onda seno estirada
+      function dibujarColina(baseAltura, amplitud, estiramiento, color) {
+        ctx.beginPath();
+        ctx.moveTo(0, window.innerHeight);
+        ctx.lineTo(0, obtenerYColina(0, baseAltura, amplitud, estiramiento));
+        for (let i = 0; i < window.innerWidth; i++) {
+          ctx.lineTo(i, obtenerYColina(i, baseAltura, amplitud, estiramiento));
+        }
+        ctx.lineTo(window.innerWidth, window.innerHeight);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+
+      function dibujarArbol(x, color) {
+        ctx.save();
+        ctx.translate(
+          (-desplazamientoEscena * multiplicadorVelocidadFondo + x) * estiramientoColina1,
+          obtenerYArbol(x, baseAlturaColina1, amplitudColina1)
+        );
+
+        const altoTroncoArbol = 5;
+        const anchoTroncoArbol = 2;
+        const altoCopaArbol = 25;
+        const anchoCopaArbol = 10;
+
+        // Dibujar tronco
+        ctx.fillStyle = "#7D833C";
+        ctx.fillRect(
+          -anchoTroncoArbol / 2,
+          -altoTroncoArbol,
+          anchoTroncoArbol,
+          altoTroncoArbol
+        );
+
+        // Dibujar copa
+        ctx.beginPath();
+        ctx.moveTo(-anchoCopaArbol / 2, -altoTroncoArbol);
+        ctx.lineTo(0, -(altoTroncoArbol + altoCopaArbol));
+        ctx.lineTo(anchoCopaArbol / 2, -altoTroncoArbol);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function obtenerYColina(xVentana, baseAltura, amplitud, estiramiento) {
+        const baseY = window.innerHeight - baseAltura;
+        return (
+          Math.seno((desplazamientoEscena * multiplicadorVelocidadFondo + xVentana) * estiramiento) *
+            amplitud +
+          baseY
+        );
+      }
+
+      function obtenerYArbol(x, baseAltura, amplitud) {
+        const baseY = window.innerHeight - baseAltura;
+        return Math.seno(x) * amplitud + baseY;
+      }
+    </script>
+  </body>
+</html>
